@@ -60,18 +60,19 @@ chmod +x AEye.command
 
 ### 方式二：命令行模式
 
-如果您更喜欢使用命令行：
-
-1. **进入项目目录**
+1. **进入项目目录并安装依赖**
 
 ```bash
 cd /path/to/AEye
+
+# 安装依赖
+pip install -r requirements.txt
 ```
 
 2. **运行程序**
 
 ```bash
-# 首次使用或日常使用（启动 GUI）
+# 启动 GUI
 python3 -m aeye
 
 # 或（如果已安装）
@@ -82,20 +83,14 @@ aeye gui
 python3 -m aeye --file example_app/demo.py
 ```
 
+3. **使用说明**
+
 GUI 界面会自动打开，您可以：
 
 - 选择项目文件夹
 - 自动检测 Poetry/UV/.venv 虚拟环境
 - 选择 Python 入口文件
 - 一键启动调试
-
-3. **安装依赖（可选）**
-
-如果需要完整安装：
-
-```bash
-pip install -e .
-```
 
 对于 Poetry 项目，建议将 AEye 安装在同一个虚拟环境中。
 

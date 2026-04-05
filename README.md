@@ -60,18 +60,19 @@ After that, you can simply double-click to launch! You can also drag the file to
 
 ### Option 2: Command Line Mode
 
-If you prefer using the command line:
-
-1. **Navigate to project directory**
+1. **Navigate to project directory and install dependencies**
 
 ```bash
 cd /path/to/AEye
+
+# Install dependencies
+pip install -r requirements.txt
 ```
 
 2. **Run the program**
 
 ```bash
-# First-time or daily use (launch GUI)
+# Launch GUI
 python3 -m aeye
 
 # or (if installed)
@@ -82,20 +83,14 @@ aeye gui
 python3 -m aeye --file example_app/demo.py
 ```
 
+3. **Usage Instructions**
+
 The GUI interface will open automatically, allowing you to:
 
 - Select your project folder
 - Auto-detect Poetry/UV/.venv virtual environments
 - Choose your Python entry file
 - Launch debugging with one click
-
-3. **Install Dependencies (Optional)**
-
-For full installation:
-
-```bash
-pip install -e .
-```
 
 For Poetry projects, install AEye in the same virtual environment.
 

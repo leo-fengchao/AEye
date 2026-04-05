@@ -72,6 +72,136 @@ class CommentEntry:
     widget_ref: Any | None = None
 
 
+class Toast:
+    def __init__(self, parent=None):
+        from PySide6 import QtCore, QtGui, QtWidgets
+
+        class _ToastWidget(QtWidgets.QWidget):
+            def __init__(self):
+                super().__init__(parent)
+                self.setProperty("aeye_internal", True)
+                self.setWindowFlags(
+                    QtCore.Qt.FramelessWindowHint |
+                    QtCore.Qt.WindowStaysOnTopHint |
+                    QtCore.Qt.Tool
+                )
+                self.setAttribute(QtCore.Qt.WA_TranslucentBackground, True)
+                self.setAttribute(QtCore.Qt.WA_ShowWithoutActivating, True)
+                self.hide()
+
+                main_layout = QtWidgets.QHBoxLayout(self)
+                main_layout.setContentsMargins(0, 0, 0, 0)
+                
+                container = QtWidgets.QFrame()
+                container.setObjectName("toastContainer")
+                container_layout = QtWidgets.QHBoxLayout(container)
+                container_layout.setContentsMargins(24, 16, 24, 16)
+                container_layout.setSpacing(12)
+                
+                icon_label = QtWidgets.QLabel("✓")
+                icon_label.setObjectName("toastIcon")
+                icon_label.setStyleSheet("""
+                    QLabel#toastIcon {
+                        font-size: 20px;
+                        font-weight: bold;
+                    }
+                """)
+                container_layout.addWidget(icon_label)
+                
+                self.label = QtWidgets.QLabel()
+                self.label.setObjectName("toastText")
+                self.label.setStyleSheet("""
+                    QLabel#toastText {
+                        color: #065f46;
+                        font-size: 14px;
+                        font-weight: 600;
+                    }
+                """)
+                container_layout.addWidget(self.label)
+                
+                main_layout.addWidget(container)
+                
+                self.setStyleSheet("""
+                    QFrame#toastContainer {
+                        background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                            stop:0 #ecfdf5, stop:1 #d1fae5);
+                        border: 1px solid #6ee7b7;
+                        border-radius: 16px;
+                    }
+                    QFrame#toastContainer:hover {
+                        background: qlineargradient(x1:0, y1:0, x2:0, y2:1,
+                            stop:0 #d1fae5, stop:1 #a7f3d0);
+                    }
+                """)
+
+                self.shadow = QtWidgets.QGraphicsDropShadowEffect(self)
+                self.shadow.setBlurRadius(20)
+                self.shadow.setXOffset(0)
+                self.shadow.setYOffset(4)
+                self.shadow.setColor(QtGui.QColor(0, 0, 0, 40))
+                container.setGraphicsEffect(self.shadow)
+
+                self.timer = QtCore.QTimer(self)
+                self.timer.setSingleShot(True)
+                self.timer.timeout.connect(self.fade_out)
+
+                self._current_opacity = 1.0
+                self.fade_timer = QtCore.QTimer(self)
+                self.fade_timer.setInterval(25)
+                self.fade_timer.timeout.connect(self._fade_step)
+                
+                self._scale = 0.9
+                self.scale_timer = QtCore.QTimer(self)
+                self.scale_timer.setInterval(15)
+                self.scale_timer.timeout.connect(self._scale_step)
+
+            def show_toast(self, text, duration=2500):
+                self.label.setText(text)
+                self.adjustSize()
+                self._current_opacity = 0.0
+                self.setWindowOpacity(0.0)
+                self._scale = 0.85
+                
+                if parent:
+                    parent_rect = parent.geometry()
+                    toast_rect = self.geometry()
+                    x = parent_rect.center().x() - toast_rect.width() // 2
+                    y = parent_rect.top() + 32
+                    self.move(x, y)
+                
+                self.show()
+                self.raise_()
+                self.scale_timer.start()
+
+            def _scale_step(self):
+                self._scale += 0.03
+                if self._scale >= 1.0:
+                    self._scale = 1.0
+                    self.scale_timer.stop()
+                    self._current_opacity = 1.0
+                    self.setWindowOpacity(1.0)
+                    self.timer.start(2500)
+                else:
+                    self.setWindowOpacity(min(1.0, self._scale * 1.2))
+
+            def fade_out(self):
+                self._current_opacity = 1.0
+                self.fade_timer.start()
+
+            def _fade_step(self):
+                self._current_opacity -= 0.04
+                if self._current_opacity <= 0:
+                    self.fade_timer.stop()
+                    self.hide()
+                else:
+                    self.setWindowOpacity(self._current_opacity)
+
+        self.widget = _ToastWidget()
+
+    def show(self, text, duration=2500):
+        self.widget.show_toast(text, duration)
+
+
 class HighlightOverlay:
     def __init__(self, color: str):
         from PySide6 import QtCore, QtGui, QtWidgets
@@ -150,6 +280,7 @@ class NotesPanel:
         self.widget.setWindowFlag(QtCore.Qt.Tool, True)
         self.widget.setProperty("aeye_internal", True)
         self.widget.setObjectName("aeyeNotesPanel")
+        self.toast = Toast(self.widget)
 
         self.current_selector: str | None = None
 
@@ -473,9 +604,7 @@ class NotesPanel:
 
         text = self.controller.export_text()
         QtWidgets.QApplication.clipboard().setText(text)
-        QtWidgets.QMessageBox.information(
-            self.widget, "AEye", self.controller.tr("msg_copied")
-        )
+        self.toast.show(self.controller.tr("msg_copied"))
 
     def _on_editor_text_changed(self) -> None:
         if self._suspend_editor_events:

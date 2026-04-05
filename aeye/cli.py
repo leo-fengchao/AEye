@@ -106,16 +106,11 @@ def build_parser() -> argparse.ArgumentParser:
     # gui 子命令
     gui_parser = subparsers.add_parser("gui", help="启动 AEye GUI 调试助手")
     
-    # 原有的命令行参数作为默认行为
+    # 直接执行文件的命令
     parser.add_argument(
         "--file",
         required=False,
         help="Python entry file to execute.",
-    )
-    parser.add_argument(
-        "file_args",
-        nargs=argparse.REMAINDER,
-        help="Arguments passed to the target file.",
     )
     
     return parser
@@ -135,7 +130,7 @@ def main(argv: list[str] | None = None) -> int:
     
     # 否则正常解析参数
     parser = build_parser()
-    args = parser.parse_args(argv)
+    args, unknown_args = parser.parse_known_args(argv)
     
     # 首次运行设置
     first_run_setup()
@@ -151,7 +146,8 @@ def main(argv: list[str] | None = None) -> int:
         if not target.exists():
             parser.error(f"Target file does not exist: {target}")
         
-        file_args = list(args.file_args)
+        # 处理传递给目标文件的参数
+        file_args = list(unknown_args)
         if file_args[:1] == ["--"]:
             file_args = file_args[1:]
         

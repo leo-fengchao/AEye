@@ -48,7 +48,13 @@ if /i "!ENV_TYPE!"=="poetry" (
             if /i "!choice!"=="y" (
                 echo.
                 echo Starting with system environment...
-                python -m aeye
+                echo (No installation required, running via PYTHONPATH^)
+                echo.
+                call :check_and_install_dependencies
+                if !errorlevel! equ 0 (
+                    set "PYTHONPATH=%SCRIPT_DIR%"
+                    python -m aeye
+                )
             ) else (
                 echo.
                 echo Cancelled, not using system environment.
@@ -71,7 +77,13 @@ if /i "!ENV_TYPE!"=="poetry" (
         if /i "!choice!"=="y" (
             echo.
             echo Starting with system environment...
-            python -m aeye
+            echo (No installation required, running via PYTHONPATH^)
+            echo.
+            call :check_and_install_dependencies
+            if !errorlevel! equ 0 (
+                set "PYTHONPATH=%SCRIPT_DIR%"
+                python -m aeye
+            )
         ) else (
             echo.
             echo Cancelled, not using system environment.
@@ -80,10 +92,59 @@ if /i "!ENV_TYPE!"=="poetry" (
     )
 ) else (
     echo Starting with system environment...
-    python -m aeye
+    echo (No installation required, running via PYTHONPATH^)
+    echo.
+    call :check_and_install_dependencies
+    if !errorlevel! equ 0 (
+        set "PYTHONPATH=%SCRIPT_DIR%"
+        python -m aeye
+    )
 )
 
 REM Keep window open to view errors
 echo.
 echo Press any key to close this window...
 pause >nul
+exit /b
+
+REM ==========================================
+REM Function to check and install dependencies
+REM ==========================================
+:check_and_install_dependencies
+echo Checking dependencies...
+
+REM Check PySide6
+python -c "import PySide6" 2>nul
+if !errorlevel! equ 0 (
+    echo [OK] PySide6 is ready
+) else (
+    echo [WARN] PySide6 not found
+    echo.
+    echo AEye requires PySide6 to run the GUI interface.
+    echo.
+    echo Would you like to install PySide6 now? (y/n^)
+    set /p "choice=Enter your choice: "
+    if /i "!choice!"=="y" (
+        echo.
+        echo Installing PySide6...
+        python -m pip install PySide6
+        if !errorlevel! equ 0 (
+            echo.
+            echo [OK] PySide6 installed successfully!
+            echo.
+        ) else (
+            echo.
+            echo [ERROR] PySide6 installation failed!
+            echo.
+            echo Please run manually: pip install PySide6
+            echo.
+            exit /b 1
+        )
+    ) else (
+        echo.
+        echo Installation cancelled, cannot start AEye.
+        echo.
+        exit /b 1
+    )
+)
+goto :eof
