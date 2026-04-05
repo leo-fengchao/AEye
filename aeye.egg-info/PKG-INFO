@@ -1,0 +1,101 @@
+Metadata-Version: 2.4
+Name: aeye
+Version: 0.1.0
+Summary: AI-oriented runtime UI inspector for PySide6 apps.
+Requires-Python: >=3.10
+Description-Content-Type: text/markdown
+Requires-Dist: PySide6>=6.5
+
+# AEye / 点睛
+
+`AEye` 是一个面向 AI 协作的 PySide6 运行时 UI 调试原型。
+
+它的目标不是单纯查看控件树，而是把“我想改这个具体元素”的意图，转换成 AI 能理解的精确文本描述。
+
+当前默认界面语言为中文，并支持一键切换到英文。
+
+## 名称含义
+
+- **英文名 `AEye`**：由 `AI + Eye` 组合而成，可理解为“AI 之眼”。它强调为 AI 提供一双能够看见桌面软件 UI 细节的“眼睛”，让界面调试不再停留在模糊的文字描述上。
+- **中文名 `点睛`**：一方面对应“点选”UI 元素这一核心交互，用户通过鼠标点选即可标注问题并补充修改建议；另一方面呼应“画龙点睛”，适合软件主体已完成、进入界面细节精修的使用场景。
+- **整体品牌内涵**：`点睛 AEye` 面向 PySide 开发者，围绕“看见界面细节、精准定位元素、高效协同 AI”展开，希望把 UI 调试沟通变得更直接、更准确。
+
+## 当前原型能力
+
+- 以包装器方式启动目标 PySide6 程序
+- 在 `QMainWindow` 菜单栏注入 `AEye` 菜单
+- 启动后默认显示修改面板，并自动贴靠主窗口右侧
+- 修改面板内集成检查模式开关，与菜单状态同步
+- 打开检查模式后，鼠标悬停高亮当前控件
+- 左键选中控件
+- 右键列出当前控件到父级控件的候选层级
+- 对选中的控件填写修改意见，并自动保存 / 更新
+- 选中“已记录修改项”时，可反向高亮主界面中的对应控件
+- 在重叠项菜单中移动鼠标时，可实时预览当前候选项对应的主界面控件
+- 将修改意见导出为可直接粘贴给 AI 的 Prompt
+- 支持中文 / 英文界面与导出文本切换
+- 导出时附带轻量级源码候选，帮助 AI 更快回到项目代码
+
+## 快速开始
+
+1. 安装依赖
+
+```bash
+pip install -e .
+```
+
+2. 运行示例应用
+
+```bash
+python3 -m aeye --file example_app/demo.py
+```
+
+3. 使用方式
+
+- 在示例程序的菜单栏点击 `AEye`
+- 也可以直接在 `AEye 修改面板` 顶部打开 / 关闭检查模式
+- 把鼠标移动到想调试的控件上，查看悬停高亮
+- 左键选择目标控件
+- 如果当前位置有多层控件重叠，右键弹出候选列表
+- 在 `AEye 修改面板` 中填写修改意见，系统会自动保存
+- 点击左侧已记录修改项时，主界面会同步高亮对应控件
+- 点击 `导出 AI Prompt` 或 `复制 AI Prompt`
+- 点击菜单中的语言切换项可一键切到英文
+
+## AI Prompt 示例
+
+```text
+下面每个元素都包含运行时定位信息、源码候选和对应的修改意见。
+请根据这些信息有针对性地修改对应元素，尽量不要影响未提及的界面部分；如果无法唯一定位，优先结合 objectName、源码候选、父级链路、窗口标题和几何信息综合判断。
+
+[元素 1]
+定位信息:
+- Selector: MainWindow[windowTitle="AEye Example App"] > QWidget:nth(0) > QFrame#sidebar > QLabel#nav_prompt_export
+- 类名: QLabel
+- objectName: nav_prompt_export
+- 窗口标题: AEye Example App
+- 文本: Prompt Export
+- 几何信息: x=0, y=0, w=120, h=32
+- 父级链路: MainWindow[windowTitle="AEye Example App"] > QWidget:nth(0) > QFrame#sidebar
+- 定位提示: 优先通过 objectName='nav_prompt_export' 精准定位；再结合类名 QLabel 与几何信息核对。
+源码候选:
+- example_app/demo.py:73 | objectName 匹配 | label.setObjectName(f"nav_{name.lower().replace(' ', '_')}")
+修改意见:
+这个导航项和上方项目的垂直间距太小，请增加 6px。
+```
+
+## 当前限制
+
+- 目前只支持 `PySide6`
+- 目前以 `QWidget` / `QMainWindow` 体系为主
+- 当前源码候选还是轻量匹配，不是完整静态分析
+- 还没有接入属性面板、样式 diff、自动截图
+- `selector` 目前是运行时路径表达，不是最终稳定版，也不是源码定位器
+
+## 下一步建议
+
+- 支持 `PyQt6 / PySide2 / PyQt5`
+- 增加控件属性快照，比如 `styleSheet`、字体、调色板、尺寸策略
+- 增加批量截图和局部截图
+- 增加源码文件定位与代码片段导出
+- 把导出格式升级为更适合 AI 消费的 Prompt 模板

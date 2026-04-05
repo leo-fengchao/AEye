@@ -1,0 +1,14 @@
+README.md
+pyproject.toml
+aeye/__init__.py
+aeye/__main__.py
+aeye/cli.py
+aeye/i18n.py
+aeye/launcher.py
+aeye/runtime.py
+aeye.egg-info/PKG-INFO
+aeye.egg-info/SOURCES.txt
+aeye.egg-info/dependency_links.txt
+aeye.egg-info/entry_points.txt
+aeye.egg-info/requires.txt
+aeye.egg-info/top_level.txt

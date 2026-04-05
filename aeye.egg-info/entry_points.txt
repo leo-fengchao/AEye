@@ -1,0 +1,2 @@
+[console_scripts]
+aeye = aeye.cli:main

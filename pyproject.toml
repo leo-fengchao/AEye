@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "aeye"
+version = "0.1.0"
+description = "AI-oriented runtime UI inspector for PySide6 apps."
+readme = "README.md"
+authors = []
+packages = [{ include = "aeye" }]
+
+[tool.poetry.dependencies]
+python = ">=3.10"
+PySide6 = ">=6.5"
+
+[tool.poetry.scripts]
+aeye = "aeye.cli:main"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
